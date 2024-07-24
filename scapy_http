@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+
+from scapy.all import *
+import time
+ip=IP(dst='<destination_IP>')
+#SEND SYN
+SYN=TCP(dport=80, flags='S')
+SYNACK=sr1(ip/SYN)
+time.sleep(1)
+#SEND ACK
+ACK=TCP(dport=80, flags='A', seq=SYNACK[TCP].ack, ack=SYNACK[TCP].seq+1)
+send(ip/ACK)
+time.sleep(1)
+payload = 'GET / HTTP/1.1\r\nHost: <destination_IP>\r\n'
+#SEND HTTP GET
+PUSH=TCP(dport=80, flags='P''A', seq=SYNACK[TCP].ack, ack=SYNACK[TCP].seq+1)
+answer=sr1(ip/PUSH/payload)
+answer.display()
