@@ -12,14 +12,14 @@ small = [25,80,53,443,445,3389, 8080,8443]
 def get_arguments():
     parser = argparse.ArgumentParser(description="ip address to scan for")
     parser.add_argument('-i',dest='iface',type=str,help="enter the interface aka dev", required=True)
-    parser.add_argument('-d',dest='ip_addr',type=str,help="enter ",required=True)
+    parser.add_argument('-d',dest='ip_addr',type=str,help="enter ip of the target ",required=True)
     parser.add_argument('-l',dest="ports",help="big or small list of ports - b or s ",default='s')
     args=parser.parse_args()
     return args
 
 def scan_m(ip,iface,ports):
     print('[+] start scaning.please wait...\n')
-    ans, unans = srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst=ip), iface=iface,timeout=0.1,verbose=False)
+    ans, unans = srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst=ip), iface=iface,timeout=1,verbose=False)
     if ans:
         print("  IP\t\tMAC Address\t\tOpen ports\t\tClosed ports\n----------------------------------------------------------------------------------->")
         if ports == 'b':
@@ -28,7 +28,7 @@ def scan_m(ip,iface,ports):
             ports=small
         
         for (s,r,) in ans:
-            a,u = sr(IP(dst=r[ARP].psrc)/TCP(sport=33333,dport=ports,flags="S"),iface=iface,timeout=3,verbose=False)
+            a,u = sr(IP(dst=r[ARP].psrc)/TCP(sport=33333,dport=ports,flags="S"),iface=iface,timeout=5,verbose=False)
             if a:
                 open_ports=[]
                 closed_ports=[]
@@ -36,9 +36,8 @@ def scan_m(ip,iface,ports):
                     if s1[TCP].dport == r1[TCP].sport and r1[TCP].flags == 'SA':
                         open_ports.append(s1[TCP].dport)
 
-                    elif s1[TCP].dport == r1[TCP].sport and r1[TCP].flags == 'R':
+                    elif s1[TCP].dport == r1[TCP].sport and str(r1[TCP].flags) in 'RA':
                         closed_ports.append(s1[TCP].dport)
-                
                 if closed_ports:
                     print(Fore.GREEN+r[ARP].psrc+'\t'+r[Ether].src+'\t'+Fore.BLUE+str(open_ports)+ Fore.RESET+'\t'+Fore.RED+str(closed_ports)+ Fore.RESET)
                 else:
@@ -51,7 +50,7 @@ def scan_m(ip,iface,ports):
 def syn_scan(ip,iface):
     print ('[+] making syn scan...')
     
-def main():
+if __name__=='__main__':
     args = get_arguments()
     if re.search('((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}',args.ip_addr):
         try:
@@ -61,5 +60,3 @@ def main():
             print('\n\r[-] sorry...u need sudo privilege...')
     else:
         print('[-] ip not valid')
-
-main()
