@@ -21,7 +21,7 @@ def scan_m(ip,iface,ports):
     print('[+] start scaning.please wait...\n')
     ans, unans = srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst=ip), iface=iface,timeout=0.1,verbose=False)
     if ans:
-        print("  IP\t\tMAC Address\t\tOpen ports\n----------------------------------------------------------------------->")
+        print("  IP\t\tMAC Address\t\tOpen ports\t\tClosed ports\n----------------------------------------------------------------------------------->")
         if ports == 'b':
             ports=big
         else:
@@ -31,10 +31,18 @@ def scan_m(ip,iface,ports):
             a,u = sr(IP(dst=r[ARP].psrc)/TCP(sport=33333,dport=ports,flags="S"),iface=iface,timeout=3,verbose=False)
             if a:
                 open_ports=[]
+                closed_ports=[]
                 for (s1,r1) in a:
-                    if s1[TCP].dport == r1[TCP].sport and r1[TCP].flags=='SA':
+                    if s1[TCP].dport == r1[TCP].sport and r1[TCP].flags == 'SA':
                         open_ports.append(s1[TCP].dport)
-                print(Fore.GREEN+r[ARP].psrc+'\t'+r[Ether].src+'\t'+str(open_ports)+ Fore.RESET)
+
+                    elif s1[TCP].dport == r1[TCP].sport and r1[TCP].flags == 'R':
+                        closed_ports.append(s1[TCP].dport)
+                
+                if closed_ports:
+                    print(Fore.GREEN+r[ARP].psrc+'\t'+r[Ether].src+'\t'+Fore.BLUE+str(open_ports)+ Fore.RESET+'\t'+Fore.RED+str(closed_ports)+ Fore.RESET)
+                else:
+                    print(Fore.GREEN+r[ARP].psrc+'\t'+r[Ether].src+'\t'+Fore.BLUE+str(open_ports)+ Fore.RESET)
             else:
                 print(Fore.RED+r[ARP].psrc+'\t'+r[Ether].src+'\t[fw protected]'+ Fore.RESET)
     else:
