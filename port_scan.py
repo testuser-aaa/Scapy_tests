@@ -13,7 +13,7 @@ def get_arguments():
     parser = argparse.ArgumentParser(description="ip address to scan for")
     parser.add_argument('-i',dest='iface',type=str,help="enter the interface aka dev", required=True)
     parser.add_argument('-d',dest='ip_addr',type=str,help="enter ",required=True)
-    parser.add_argument('-l',dest="ports",help="big or small list of ports - b or s ")
+    parser.add_argument('-l',dest="ports",help="big or small list of ports - b or s ",default='s')
     args=parser.parse_args()
     return args
 
